@@ -1,0 +1,233 @@
+<!DOCTYPE html><html><head><title>Untitled</title><meta charset='utf-8'><link href='https://cdn.maxiang.io/res-min/themes/marxico.css' rel='stylesheet'><style>.note-content  {font-family: "Helvetica Neue", Arial, "Hiragino Sans GB", STHeiti, "Microsoft YaHei", "WenQuanYi Micro Hei", SimSun, Song, sans-serif;}
+
+.note-content p {box-sizing: border-box; margin-bottom: 1.1em; line-height: 30px; font-size: 16px; color: rgb(44, 63, 81); font-family: 苹方, "苹方 中等", 微软雅黑, "Helvetica Neue", Arial, "Hiragino Sans GB", STHeiti, "Microsoft YaHei", "WenQuanYi Micro Hei", SimSun, Song, sans-serif; white-space: normal; margin-left: 16px; margin-right: 16px; outline: none !important; visibility: visible;}
+.note-content h1, .note-content h2, .note-content h3 {margin-left: 16px; margin-right: 16px;}
+.note-content blockquote p {font-weight: normal;}
+.note-content code, .note-content  pre {font-family: "Source Code Pro", Consolas, monospace, 微软雅黑;}
+.note-content .e1 {line-height: 1.6; background-color: rgb(255, 229, 153); font-weight: 900; border-radius: 2px; padding: 3px;}
+
+</style></head><body><div id='preview-contents' class='note-content'>
+                        
+
+
+
+<pre class="prettyprint hljs-light"><code class="language-javascript hljs"><div class="hljs-line"><span class="hljs-keyword">import</span> JSEncrypt <span class="hljs-keyword">from</span> <span class="hljs-string">"jsencrypt"</span>;
+</div><div class="hljs-line"><span class="hljs-keyword">import</span> {Base64} <span class="hljs-keyword">from</span> <span class="hljs-string">"js-base64"</span>;
+</div><div class="hljs-line"><span class="hljs-keyword">import</span> jsrsasign <span class="hljs-keyword">from</span> <span class="hljs-string">"jsrsasign"</span>
+<br>
+</div><div class="hljs-line"><span class="hljs-comment">// 将公钥用于加密，输出的结果是base64编码的字符串</span>
+</div><div class="hljs-line"><span class="hljs-keyword">const</span> encrypt_string_by_b64_public_key = (
+</div><div class="hljs-line">    plain_text: string, <span class="hljs-attr">public_b64_key</span>: string) =&gt; {
+</div><div class="hljs-line">    <span class="hljs-keyword">const</span> encrypt = <span class="hljs-keyword">new</span> JSEncrypt();
+</div><div class="hljs-line">    encrypt.setPublicKey(Base64.decode(public_b64_key));
+</div><div class="hljs-line">    <span class="hljs-keyword">return</span> encrypt.encrypt(plain_text);
+</div><div class="hljs-line">}
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line"><span class="hljs-keyword">const</span> decrypt_string_by_b64_private_key = (
+</div><div class="hljs-line">    encrypted_text: string, <span class="hljs-attr">private_b64_key</span>: string) =&gt; {
+</div><div class="hljs-line">    <span class="hljs-keyword">const</span> decrypt = <span class="hljs-keyword">new</span> JSEncrypt();
+</div><div class="hljs-line">    decrypt.setPrivateKey(Base64.decode(private_b64_key));
+</div><div class="hljs-line">    <span class="hljs-keyword">return</span> decrypt.decrypt(encrypted_text);
+</div><div class="hljs-line">}
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line"><span class="hljs-keyword">const</span> decrypt_json_by_b64_private_key = (
+</div><div class="hljs-line">    encrypted_json: string, <span class="hljs-attr">private_b64_key</span>: string) =&gt; {
+</div><div class="hljs-line">    <span class="hljs-keyword">return</span> <span class="hljs-built_in">JSON</span>.parse(decrypt_string_by_b64_private_key(
+</div><div class="hljs-line">                encrypted_json, private_b64_key) <span class="hljs-keyword">as</span> string)
+</div><div class="hljs-line">}
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line"><span class="hljs-keyword">const</span> encrypt_obj_by_b64_public_key = (
+</div><div class="hljs-line">    base_obj: object, <span class="hljs-attr">public_b64_key</span>: string) =&gt; {
+</div><div class="hljs-line">    <span class="hljs-keyword">return</span> encrypt_string_by_b64_public_key(<span class="hljs-built_in">JSON</span>.stringify(base_obj), 
+</div><div class="hljs-line">            public_b64_key)
+</div><div class="hljs-line">}
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line"><span class="hljs-keyword">const</span> gen_keys = <span class="hljs-function">(<span class="hljs-params">key_length = <span class="hljs-number">2048</span>, is_b64_encode = <span class="hljs-literal">false</span></span>) =&gt;</span> {
+</div><div class="hljs-line">    <span class="hljs-keyword">let</span> rsa_key_pair = jsrsasign.KEYUTIL.generateKeypair(<span class="hljs-string">"RSA"</span>, key_length)
+</div><div class="hljs-line">    <span class="hljs-keyword">let</span> public_key = jsrsasign.KEYUTIL.getPEM(rsa_key_pair.prvKeyObj)
+</div><div class="hljs-line">    <span class="hljs-keyword">let</span> private_key = jsrsasign.KEYUTIL.getPEM(
+</div><div class="hljs-line">                        rsa_key_pair.prvKeyObj, <span class="hljs-string">"PKCS1PRV"</span>)
+</div><div class="hljs-line">    <span class="hljs-keyword">if</span> (is_b64_encode) {
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> {<span class="hljs-attr">private_key</span>: Base64.encode(private_key),
+</div><div class="hljs-line">                 <span class="hljs-attr">public_key</span>: Base64.decode(public_key)}
+</div><div class="hljs-line">    }
+</div><div class="hljs-line">    <span class="hljs-keyword">return</span> {private_key, public_key}
+</div><div class="hljs-line">}
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line"><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+</div><div class="hljs-line">    encrypt_string_by_b64_public_key,
+</div><div class="hljs-line">    decrypt_string_by_b64_private_key,
+</div><div class="hljs-line">    decrypt_json_by_b64_private_key, 
+</div><div class="hljs-line">    encrypt_obj_by_b64_public_key, gen_keys
+</div><div class="hljs-line">}
+</div></code></pre>
+
+<pre class="prettyprint hljs-light"><code class="language-python hljs"><div class="hljs-line"><span class="hljs-comment"># !/usr/bin/python</span>
+</div><div class="hljs-line"><span class="hljs-comment"># -*- coding: utf-8 -*</span>
+</div><div class="hljs-line"><span class="hljs-comment"># @Auther: guo</span>
+</div><div class="hljs-line"><span class="hljs-comment"># @Email: guo2018@88.com</span>
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line"><span class="hljs-keyword">import</span> json
+</div><div class="hljs-line"><span class="hljs-keyword">from</span> Cryptodome.Cipher <span class="hljs-keyword">import</span> PKCS1_v1_5
+</div><div class="hljs-line"><span class="hljs-keyword">from</span> Cryptodome.PublicKey <span class="hljs-keyword">import</span> RSA
+</div><div class="hljs-line"><span class="hljs-keyword">import</span> base64
+</div><div class="hljs-line"><span class="hljs-keyword">from</span> utils.datas <span class="hljs-keyword">import</span> split_string
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line"><span class="hljs-comment">#def split_string(string, length):</span>
+</div><div class="hljs-line"><span class="hljs-comment">#    """</span>
+</div><div class="hljs-line"><span class="hljs-comment">#    按照指定长度分割输入字符串，并以列表形式返回</span>
+</div><div class="hljs-line"><span class="hljs-comment">#    :param string: 待分割字符串</span>
+</div><div class="hljs-line"><span class="hljs-comment">#    :param length: 指定分割长度</span>
+</div><div class="hljs-line"><span class="hljs-comment">#    :return: 分割后的字符串列表</span>
+</div><div class="hljs-line"><span class="hljs-comment">#    """</span>
+</div><div class="hljs-line"><span class="hljs-comment">#   str_lst = findall(r'.{' + str(length) + '}', string)</span>
+</div><div class="hljs-line"><span class="hljs-comment">#    str_lst.append(string[(len(str_lst) * length):])</span>
+</div><div class="hljs-line"><span class="hljs-comment">#    return str_lst</span>
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">_GuoRSAKey</span><span class="hljs-params">(object)</span>:</span>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__init__</span><span class="hljs-params">(self)</span>:</span>
+</div><div class="hljs-line">        self.key_obj = <span class="hljs-keyword">None</span>
+</div><div class="hljs-line">        self.key_type = <span class="hljs-string">""</span>
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">load_by_b64_str</span><span class="hljs-params">(self, b64_key_string)</span>:</span>
+</div><div class="hljs-line">        self.key_obj = RSA.import_key(base64.b64decode(
+</div><div class="hljs-line">                        b64_key_string.encode()))
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> self
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line"><span class="hljs-meta">    @property</span>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">key_bytes</span><span class="hljs-params">(self)</span>:</span>
+</div><div class="hljs-line">        <span class="hljs-keyword">if</span> self.key_obj:
+</div><div class="hljs-line">            <span class="hljs-keyword">return</span> self.key_obj.export_key()
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> <span class="hljs-keyword">None</span>
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line"><span class="hljs-meta">    @property</span>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">key_string</span><span class="hljs-params">(self)</span>:</span>
+</div><div class="hljs-line">        <span class="hljs-keyword">if</span> self.key_obj:
+</div><div class="hljs-line">            <span class="hljs-keyword">return</span> self.key_bytes.decode()
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> <span class="hljs-keyword">None</span>
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line"><span class="hljs-meta">    @property</span>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">key_b64</span><span class="hljs-params">(self)</span>:</span>
+</div><div class="hljs-line">        <span class="hljs-keyword">if</span> self.key_obj:
+</div><div class="hljs-line">            <span class="hljs-keyword">return</span> base64.b64encode(self.key_bytes).decode(<span class="hljs-string">"utf-8"</span>)
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> <span class="hljs-keyword">None</span>
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">GuoPrivateKey</span><span class="hljs-params">(_GuoRSAKey)</span>:</span>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__init__</span><span class="hljs-params">(self)</span>:</span>
+</div><div class="hljs-line">        super(GuoPrivateKey, self).__init__()
+</div><div class="hljs-line">        self.key_type = <span class="hljs-string">"private_key"</span>
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">decrypt_input_str_bytes</span><span class="hljs-params">(self, encrypt_text: bytes)</span>:</span>
+</div><div class="hljs-line">        cipher = PKCS1_v1_5.new(self.key_obj)
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> cipher.decrypt(encrypt_text, <span class="hljs-keyword">None</span>).decode()
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">decrypt_input_str_b64</span><span class="hljs-params">(self, encrypted_b64_text: str)</span>:</span>
+</div><div class="hljs-line">        encrypted_text_bytes = base64.b64decode(encrypted_b64_text.encode())
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> self.decrypt_input_str_bytes(encrypted_text_bytes)
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">decrypt_long_str_input_bytes</span><span class="hljs-params">(self, encrypt_list: list[bytes])</span>:</span>
+</div><div class="hljs-line">        result_list = []
+</div><div class="hljs-line">        <span class="hljs-keyword">for</span> each_decrypt <span class="hljs-keyword">in</span> encrypt_list:
+</div><div class="hljs-line">            result_list.append(self.decrypt_input_str_bytes(each_decrypt))
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> result_list
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">decrypt_long_str_input_b64</span><span class="hljs-params">(self, encrypt_list: list[str])</span>:</span>
+</div><div class="hljs-line">        result_list = []
+</div><div class="hljs-line">        <span class="hljs-keyword">for</span> each_decrypt <span class="hljs-keyword">in</span> encrypt_list:
+</div><div class="hljs-line">            result_list.append(self.decrypt_input_str_b64(each_decrypt))
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> result_list
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">decrypt_json_input_bytes</span><span class="hljs-params">(self, encrypt_text: bytes)</span>:</span>
+</div><div class="hljs-line">        cipher = PKCS1_v1_5.new(self.key_obj)
+</div><div class="hljs-line">        decrypted_bytes = cipher.decrypt(encrypt_text, <span class="hljs-keyword">None</span>).decode()
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> json.loads(decrypted_bytes)
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">decrypt_json_input_b64</span><span class="hljs-params">(self, encrypted_b64_text: str)</span>:</span>
+</div><div class="hljs-line">        encrypted_text_bytes = base64.b64decode(encrypted_b64_text.encode())
+</div><div class="hljs-line">        decrypted_str = self.decrypt_input_str_bytes(encrypted_text_bytes)
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> json.loads(decrypted_str)
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">decrypt_long_json_input_bytes</span><span class="hljs-params">(self, encrypt_list: dict[bytes])</span>:</span>
+</div><div class="hljs-line">        result_list = []
+</div><div class="hljs-line">        <span class="hljs-keyword">for</span> each_decrypt <span class="hljs-keyword">in</span> encrypt_list:
+</div><div class="hljs-line">            result_list.append(self.decrypt_input_str_bytes(each_decrypt))
+</div><div class="hljs-line">        long_json_str = <span class="hljs-string">""</span>.join(result_list)
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> json.loads(long_json_str)
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">decrypt_long_json_input_b64</span><span class="hljs-params">(self, encrypt_list: dict[str])</span>:</span>
+</div><div class="hljs-line">        result_list = []
+</div><div class="hljs-line">        <span class="hljs-keyword">for</span> each_decrypt <span class="hljs-keyword">in</span> encrypt_list:
+</div><div class="hljs-line">            result_list.append(self.decrypt_input_str_b64(each_decrypt))
+</div><div class="hljs-line">        long_json_str = <span class="hljs-string">""</span>.join(result_list)
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> json.loads(long_json_str)
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">GuoPublicKey</span><span class="hljs-params">(_GuoRSAKey)</span>:</span>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__init__</span><span class="hljs-params">(self)</span>:</span>
+</div><div class="hljs-line">        super(GuoPublicKey, self).__init__()
+</div><div class="hljs-line">        self.key_type = <span class="hljs-string">"public_key"</span>
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">encrypt_str_output_bytes</span><span class="hljs-params">(self, encrypt_text: str)</span>:</span>
+</div><div class="hljs-line">        cipher = PKCS1_v1_5.new(self.key_obj)
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> cipher.encrypt(encrypt_text.encode())
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">encrypt_str_output_b64</span><span class="hljs-params">(self, encrypt_text: str)</span>:</span>
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> base64.b64encode(
+</div><div class="hljs-line">                self.encrypt_str_output_bytes(
+</div><div class="hljs-line">                encrypt_text)).decode(<span class="hljs-string">"utf-8"</span>)
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">encrypt_long_str_output_bytes</span><span class="hljs-params">(self, encrypt_text: str, </span></span>
+</div><div class="hljs-line"><span class="hljs-function">                                        buffer_size: int):</span>
+</div><div class="hljs-line">        divided_info_list = split_string(encrypt_text, buffer_size)
+</div><div class="hljs-line">        result_list = []
+</div><div class="hljs-line">        <span class="hljs-keyword">for</span> each_info_part <span class="hljs-keyword">in</span> divided_info_list:
+</div><div class="hljs-line">            result_list.append(
+</div><div class="hljs-line">                self.encrypt_str_output_bytes(each_info_part))
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> result_list
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">encrypt_long_dict_output_bytes</span><span class="hljs-params">(self, encrypt_dict: dict,</span></span>
+</div><div class="hljs-line"><span class="hljs-function">                                        buffer_size: int):</span>
+</div><div class="hljs-line">        json_str = json.dumps(encrypt_dict)
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> self.encrypt_long_str_output_bytes(json_str, buffer_size)
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">encrypt_long_dict_output_b64</span><span class="hljs-params">(self, encrypt_dict: dict, </span></span>
+</div><div class="hljs-line"><span class="hljs-function">                                    buffer_size: int):</span>
+</div><div class="hljs-line">        json_str = json.dumps(encrypt_dict)
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> self.encrypt_long_str_output_b64(json_str, buffer_size)
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">encrypt_long_str_output_b64</span><span class="hljs-params">(self, encrypt_text: str, </span></span>
+</div><div class="hljs-line"><span class="hljs-function">                                    buffer_size: int):</span>
+</div><div class="hljs-line">        divided_info_list = split_string(encrypt_text, buffer_size)
+</div><div class="hljs-line">        result_list = []
+</div><div class="hljs-line">        <span class="hljs-keyword">for</span> each_info_part <span class="hljs-keyword">in</span> divided_info_list:
+</div><div class="hljs-line">            result_list.append(self.encrypt_str_output_b64(each_info_part))
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> result_list
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">encrypt_dict_output_json_bytes</span><span class="hljs-params">(self, encrypt_dict: dict)</span>:</span>
+</div><div class="hljs-line">        json_str = json.dumps(encrypt_dict)
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> self.encrypt_str_output_bytes(json_str)
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">encrypt_dict_output_json_b64</span><span class="hljs-params">(self, encrypt_dict: dict)</span>:</span>
+</div><div class="hljs-line">        json_str = json.dumps(encrypt_dict)
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> self.encrypt_str_output_b64(json_str)
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">GuoRSAPair</span><span class="hljs-params">(object)</span>:</span>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__init__</span><span class="hljs-params">(self, key_length=<span class="hljs-number">2048</span>)</span>:</span>
+</div><div class="hljs-line">        self.key_length = key_length
+</div><div class="hljs-line">        self.private_key_instance = GuoPrivateKey()
+</div><div class="hljs-line">        self.public_key_instance = GuoPublicKey()
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">renew_keys</span><span class="hljs-params">(self)</span>:</span>
+</div><div class="hljs-line">        private_key_obj = RSA.generate(self.key_length)
+</div><div class="hljs-line">        public_key_obj = private_key_obj.publickey()
+</div><div class="hljs-line">        private_key_instance = GuoPrivateKey()
+</div><div class="hljs-line">        private_key_instance.key_obj = private_key_obj
+</div><div class="hljs-line">        public_key_instance = GuoPublicKey()
+</div><div class="hljs-line">        public_key_instance.key_obj = public_key_obj
+</div><div class="hljs-line">        self.private_key_instance = private_key_instance
+</div><div class="hljs-line">        self.public_key_instance = public_key_instance
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> self
+</div><div class="hljs-line"><wbr>
+</div></code></pre></div></body></html>
