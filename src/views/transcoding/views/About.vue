@@ -7,7 +7,7 @@
     <p>本网页为探索前后端互相加解密发送信息的额外产物，换言之，算是学习成果的展示。 关于Base64编码、RSA加解密等已有大量的现成网页小工具，本网页的功能并不齐全——其意义并不在于重复造轮子，而在于记录自己的学习进步。</p>
     <p>第一段代码是TypeScript，用于前端使用，技术栈为Vue3 + Vite + TypeScript，经测试没有问题。使用Pinia作为状态管理库同样顺利运行。</p>
     <p>第二段代码是Python，用于后端使用，技术栈为Python3.10 + Django4，经测试没有问题。</p>
-    <iframe src="/crypto.html"></iframe>
+    <iframe src="/vue_transcoding_kit/crypto.html"></iframe>
   </div>
 
 
